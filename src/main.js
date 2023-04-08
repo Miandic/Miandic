@@ -25,4 +25,20 @@ const loadIndex = (minutes = new Date().getHours() * 60 + new Date().getMinutes(
     }
     console.log(bg)
     document.getElementsByTagName("body")[0].setAttribute("style", "background-color: " + bg + ";")
+
+    Write("Michael Andreev", "name")
+    setTimeout(() => {Write("Software Engineer", "title")}, 100 + "Michael Andreev".length * 50)
+}
+
+const Write = (text, id) => {
+    for (let i = 0; i < text.length; i++) {
+        setTimeout(() => {
+            document.getElementById(id).innerHTML = document.getElementById(id).innerHTML.substring(0, document.getElementById(id).innerHTML.length - 1)
+            document.getElementById(id).innerHTML += text[i]
+            document.getElementById(id).innerHTML += "_"
+        }, 1000 + i * 50)
+    }
+    setTimeout(() => {
+        document.getElementById(id).innerHTML = document.getElementById(id).innerHTML.substring(0, document.getElementById(id).innerHTML.length - 1)
+    }, 1000 + text.length * 50)
 }
