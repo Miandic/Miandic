@@ -14,7 +14,14 @@ const loadIndex = () => {
     TimeColor(minutes)
 
     Write("Michael Andreev", "name")
-    setTimeout(() => {Write("Software Engineer", "title")}, 100 + "Michael Andreev".length * 50)
+    setTimeout(() => {Write("Software & Robotics engineer", "title")}, 100 + "Michael Andreev".length * 50)
+    setTimeout(() => {$('.content')[0].setAttribute('style', 'display: block')}, 200 + "Michael Andreev".length * 100 + "Software & Robotics engineer".length * 100)
+    for (let i = 0; i <= 1; i += 0.001) {
+        setTimeout(() => {$('.content')[0].setAttribute("style", "opacity: " + i)}, 200 + "Michael Andreev".length * 100 + "Software & Robotics engineer".length * 100 + i * 1000)
+    }
+
+    
+
 }
 
 const Write = (text, id) => {
