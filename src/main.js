@@ -16,9 +16,19 @@ const loadIndex = () => {
     Write("Michael Andreev", "name")
     setTimeout(() => {Write("Software & Robotics engineer", "title")}, 100 + "Michael Andreev".length * 50)
     setTimeout(() => {$('.content')[0].setAttribute('style', 'display: block')}, 200 + "Michael Andreev".length * 100 + "Software & Robotics engineer".length * 100)
+
+    age = new Date().getFullYear() - 2005
+    if (new Date().getMonth() < 9) age--
+    if (new Date().getMonth() == 9) {
+        if (new Date().getDate() < 20) age--
+    }
+
+    document.getElementById("Hello").innerHTML = "Hello! I'm Michael - " + age + " y.o. developer and engineer. I like robots, drones and software development."
+
     for (let i = 0; i <= 1; i += 0.001) {
         setTimeout(() => {$('.content')[0].setAttribute("style", "opacity: " + i)}, 200 + "Michael Andreev".length * 100 + "Software & Robotics engineer".length * 100 + i * 1000)
     }
+
 
     
 
