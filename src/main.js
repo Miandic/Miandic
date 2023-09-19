@@ -18,10 +18,12 @@ const loadIndex = () => {
     setTimeout(() => {$('.content')[0].setAttribute('style', 'display: block')}, 200 + "Michael Andreev".length * 100 + "Software & Robotics engineer".length * 100)
 
     age = new Date().getFullYear() - 2005
-    if (new Date().getMonth() < 9) age--
-    if (new Date().getMonth() == 9) {
+    //console.log(new Date().getMonth() + 1)
+    if (new Date().getMonth() + 1 < 9) age--
+    if (new Date().getMonth() + 1 == 9) {
         if (new Date().getDate() < 20) age--
     }
+    //console.log(age)
 
     document.getElementById("Hello").innerHTML = "Hello! I'm Michael - " + age + " y.o. developer and engineer. I like robots, drones and software development."
 
