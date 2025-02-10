@@ -50,19 +50,44 @@ const Write = (text, id) => {
 }
 
 const TimeColor = (minutes) => {
-    let c1 = ColorSteps.getColorSteps('#2b2924', '#866f4a', 180)
-    let c2 = ColorSteps.getColorSteps('#866f4a', '#a7722c', 180)
-    let c3 = ColorSteps.getColorSteps('#a7722c', '#e29939', 360)
-    let mastercolor = []
-    for (let i = 0; i < c1.length; i++) { mastercolor[i] = c1[i] }
-    for (let i = 0; i < c2.length; i++) { mastercolor[i + 180] = c2[i] }
-    for (let i = 0; i < c3.length; i++) { mastercolor[i + 360] = c3[i] }
-    let bg = ''
-    if (minutes < 720) {
-        bg = mastercolor[minutes]
-    } else {
-        bg = mastercolor[720 - (minutes - 720)]
-    }
-    console.log(bg)
-    document.getElementsByTagName("body")[0].setAttribute("style", "background-color: " + bg + ";")
+    // let c1 = ColorSteps.getColorSteps('#2b2924', '#866f4a', 180)
+    // let c2 = ColorSteps.getColorSteps('#866f4a', '#a7722c', 180)
+    // let c3 = ColorSteps.getColorSteps('#a7722c', '#e29939', 360)
+    // let mastercolor = []
+    // for (let i = 0; i < c1.length; i++) { mastercolor[i] = c1[i] }
+    // for (let i = 0; i < c2.length; i++) { mastercolor[i + 180] = c2[i] }
+    // for (let i = 0; i < c3.length; i++) { mastercolor[i + 360] = c3[i] }
+    // let bg = ''
+    // if (minutes < 720) {
+    //     bg = mastercolor[minutes]
+    // } else {
+    //     bg = mastercolor[720 - (minutes - 720)]
+    // }
+    // console.log(bg)
+    
+    if (minutes < 720 && minutes > 240) {
+        document.getElementsByTagName("body")[0].setAttribute("style", "background-color: #569DEE ;")
+        for (let i = 0; i < document.getElementsByTagName("a").length; i++){
+            document.getElementsByTagName("a")[i].setAttribute("style", "color: #040622;")
+        }
+        console.log('Good morning!')
+      } else if (minutes < 1080) {
+        document.getElementsByTagName("body")[0].setAttribute("style", "background-color: #447DBE ;")
+        for (let i = 0; i < document.getElementsByTagName("a").length; i++){
+            document.getElementsByTagName("a")[i].setAttribute("style", "color: #99fff2;")
+        }
+        console.log('Good afternoon!')
+      } else if (minutes < 1320) {
+        document.getElementsByTagName("body")[0].setAttribute("style", "background-color: #475D85 ;")
+        for (let i = 0; i < document.getElementsByTagName("a").length; i++){
+            document.getElementsByTagName("a")[i].setAttribute("style", "color: #99fff2;")
+        }
+        console.log('Good evening!')
+      } else {
+        document.getElementsByTagName("body")[0].setAttribute("style", "background-color: #040622 ;")
+        for (let i = 0; i < document.getElementsByTagName("a").length; i++){
+            document.getElementsByTagName("a")[i].setAttribute("style", "color: #99fff2;")
+        }
+        console.log('Good night!')
+      }
 }
