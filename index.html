@@ -1,82 +1,476 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miandic</title>
-    <link rel="icon" type="image/png" href="./src/logo.png"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miandic</title>
+<link rel="icon" type="image/png" href="./src/logo.png"/>
+<style>
+    html, body { margin: 0; padding: 0; background: #c9d1dd; }
+    body { overflow: hidden; height: 100vh; }
+    body.m { overflow-x: hidden; overflow-y: auto; height: auto; min-height: 100vh; }
+    #bg { position: fixed; inset: 0; z-index: 0; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
+    body.m #bg { pointer-events: none; cursor: default; }
+    #sel {
+        position: fixed; display: none; pointer-events: none; z-index: 9;
+        background-image:
+            linear-gradient(90deg, #111 50%, #fff 50%), linear-gradient(90deg, #111 50%, #fff 50%),
+            linear-gradient(0deg, #111 50%, #fff 50%), linear-gradient(0deg, #111 50%, #fff 50%);
+        background-size: 8px 2px, 8px 2px, 2px 8px, 2px 8px;
+        background-position: 0 0, 0 100%, 0 0, 100% 0;
+        background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+        animation: ants .5s linear infinite;
+    }
+    @keyframes ants { to { background-position: 16px 0, -16px 100%, 0 -16px, 100% 16px; } }
 
-    <link rel="stylesheet" href="./src/main.css">
+    .stage { position: fixed; left: 50%; top: 50%; width: 880px; height: 652px;
+             transform: translate(-50%, -50%); transform-origin: center; z-index: 3; pointer-events: none; }
+    .isle { position: absolute; box-sizing: border-box; padding: 15px 19px; overflow: hidden;
+            font-family: 'Roboto Mono', ui-monospace, monospace; color: #141a23; will-change: transform; pointer-events: none; }
+    .isle a { color: #0e5a70; text-decoration: none; border-bottom: 1px solid rgba(14,90,112,.4); pointer-events: auto; }
+    .isle a:hover { color: #06303d; }
+    .nm { font-size: 44px; letter-spacing: 6px; margin: 0; font-weight: 500; }
+    .rl { font-size: 12.5px; letter-spacing: 2px; text-transform: uppercase; color: #33414f; margin: 9px 0 0; }
+    .ct { font-size: 12.5px; letter-spacing: 1px; color: #33414f; margin: 7px 0 0; }
+    .isle h2 { font-size: 13.5px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; margin: 0 0 5px; color: #1b2632; }
+    .isle p, .isle li { font-size: 13px; line-height: 1.45; margin: 2px 0; color: #222d39; }
+    .isle ul { margin: 3px 0; padding-left: 15px; } .isle li { margin: 4px 0; }
+    .pj { font-weight: 500; } .tag { color: #5a6675; }
+    .hint { position: fixed; right: 16px; bottom: 14px; font-family: ui-monospace, monospace;
+            font-size: 10px; letter-spacing: 1px; color: rgba(40,48,60,.45); z-index: 3; }
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="./src/ColorSteps.js"></script>
-    <script src="./src/main.js"></script>
-
-    <script>
-        $(window).on('load', () => {
-            loadIndex()
-            //tryDay()
-        })
-    </script>
-
+    body.m #stage { position: relative; left: auto; top: auto; z-index: 3; transform: none !important; width: auto !important; height: auto !important; padding: 10px 0 46px; }
+    body.m .isle { position: relative !important; left: auto !important; top: auto !important;
+                   width: auto !important; height: auto !important; display: block; margin: 32px 16px; padding: 18px 22px; }
+    body.m .nm { font-size: 34px; letter-spacing: 4px; }
+    body.m .rl { font-size: 14px; margin-top: 11px; }
+    body.m .ct { font-size: 14px; margin-top: 9px; }
+    body.m .isle h2 { font-size: 16px; margin-bottom: 7px; }
+    body.m .isle p, body.m .isle li { font-size: 15px; line-height: 1.5; }
+    body.m .isle ul { padding-left: 18px; } body.m .isle li { margin: 7px 0; }
+    body.m .hint { display: none; }
+</style>
 </head>
-<body class="main">
-    <div class="container">
-        <div class="winfo">
-            <h1 id="name">_</h1>
-            <h2 id="title"></h2>
-        </div>
-        <div class="content" style="display: none; opacity: 0;">
-            <div class="winfo" id="contact"><p>Russia, GMT+3 | <a href="https://t.me/miandic_n">Telegram</a> | <a href="https://github.com/Miandic">GitHub</a></p></div>
-            <div class="line"></div>
-            <div class="winfo">
-                <h2>About me</h2>
-                <p id="Hello">Hello! I'm Michael - 17 y.o. developer and engineer. I like robots, bionics and software development.</p>
-            </div>
-            <div class="line"></div>
-            <div class="winfo">
-                <h2>Skills</h2>
-                <ul class="alleft">
-                    <li>Programming languages:
-                        <br>
-                        C++, Python, JS|TS, Rust
-                    </li>
-                    <li>Engineering:
-                        <br>
-                        Autodesk Inventor, ROS, Raspberry Pi, Arduino, CNC milling, 3D printing, soldering and assembling
-                    </li>
-                    <li>Languages:
-                        <br>
-                        Russian (Native), English (B2)
-                    </li>
-                </ul>
-            </div>
-            <div class="line"></div>
-            <div class="winfo"> 
-                <h2>Projects</h2>
-                <ol class="alleft">
-                    <li>Biomimetic hand | 3D; C++</li>
-                        <p>Hand, powered by hydraulic muscles. Initially inspired by human hand, may have some changes in development process. <b>Active WIP</b> </p>
-                    <li>DBC | C++</li>
-                        <p>Drone Battery Change system. <a href="https://shustrik.org/blog/880214">Winner</a> of "ШУСТРИК" projects competiton in "Aerospace" section. Was redesigned in 2024 in a more serious form but not finished yet.<b>Prototype</b>.</p>
-                    <li><a href="https://github.com/Gusarich/multisig-dapp">Multisig dApp</a> | HTML, JS</li>
-                        <p>User-friendly web interface for interacting with Multi-signature wallets in TON.</p>
-                </ol>
-            </div>
-            <div class="line"></div>
-            <div class="winfo">
-                <h2>Main achievements</h2>
-                <ul class="alleft">
-                    <li><a href="https://vk.com/photo332500625_457241553">Prize winner</a> of the National Technical Olympiad in the "intelligent robotic systems" section  </li>
-                    <li><a href="https://shustrik.org/blog/880214">Winner</a> of regional and all-Russian stages of "ШУСТРИК"</li>
-            </div>
-            <div class="line"></div>
-            <div class="winfo">
-                <p>Happy to have you here!</p>
-            </div>
+<body>
+    <canvas id="bg"></canvas>
+    <div id="sel"></div>
 
+    <div class="stage" id="stage">
+        <div class="isle" style="left:152px; top:6px; width:540px; height:120px;">
+            <h1 class="nm">MIANDIC</h1>
+            <p class="rl">Michael Andreev — software &amp; robotics engineer</p>
+            <p class="ct">Russia · GMT+3 · <a href="https://t.me/miandic_n">Telegram</a> · <a href="https://github.com/Miandic">GitHub</a></p>
+        </div>
+        <div class="isle" style="left:10px; top:172px; width:232px; height:152px;">
+            <h2>About</h2>
+            <p id="about">Developer and engineer. I build robots, drones and software.</p>
+        </div>
+        <div class="isle" style="left:296px; top:160px; width:512px; height:264px;">
+            <h2>Projects</h2>
+            <ul>
+                <li><span class="pj">Biomimetic Hand</span> <span class="tag">3D · C++</span><br>Hand driven by hydraulic muscles. Active WIP.</li>
+                <li><span class="pj">Drone Battery Change</span> <span class="tag">C++</span><br>Autonomous battery-swap system. <a href="https://shustrik.org/blog/880214">ШУСТРИК</a> winner.</li>
+                <li><span class="pj"><a href="https://github.com/Gusarich/multisig-dapp">Multisig dApp</a></span> <span class="tag">JS</span><br>UI for multi-signature TON wallets.</li>
+            </ul>
+        </div>
+        <div class="isle" style="left:54px; top:360px; width:300px; height:204px;">
+            <h2>Skills</h2>
+            <ul>
+                <li>Programming: C++, Python, JS / TS, Rust</li>
+                <li>Engineering: Autodesk Inventor, ROS, Raspberry Pi, Arduino, CNC, 3D printing, soldering</li>
+                <li>Languages: Russian (native), English (B2)</li>
+            </ul>
+        </div>
+        <div class="isle" style="left:408px; top:468px; width:372px; height:150px;">
+            <h2>Achievements</h2>
+            <ul>
+                <li>Prize winner — National Technical Olympiad, intelligent robotic systems</li>
+                <li>Winner — regional &amp; all-Russian stages of ШУСТРИК</li>
+            </ul>
         </div>
     </div>
+
+    <div class="hint">hover · drag to select</div>
+<script>
+const cv = document.getElementById('bg');
+const ctx = cv.getContext('2d');
+const selBox = document.getElementById('sel');
+const stage = document.getElementById('stage');
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const SCALE = 4.6;
+const DESK = { w: 880, h: 652, p: [[152, 6, 540, 120], [10, 172, 232, 152], [296, 160, 512, 264], [54, 360, 300, 204], [408, 468, 372, 150]] };
+
+let W, H, cell, img, data, base, kScale = 1, STAGEW = 880, STAGEH = 652, isMobile = false;
+let balls = [];
+let islands = [];
+const mouse = { bx: -999, by: -999, mx: -9999, my: -9999, inside: false };
+let events = [];
+let nextAmbient = performance.now() + 3500;
+let last = performance.now();
+let lastScrollY = 0;
+
+const sel = { active: false, sx: 0, sy: 0, cx: 0, cy: 0 };
+
+function setAge() {
+    const d = new Date();
+    let age = d.getFullYear() - 2005;
+    const m = d.getMonth() + 1;
+    if (m < 9 || (m === 9 && d.getDate() < 20)) age--;
+    document.getElementById('about').textContent =
+        "Hello! I'm Michael — " + age + " y.o. developer and engineer. I build robots, drones and software.";
+}
+
+function initBalls() {
+    balls = [];
+    const n = 5 + (Math.random() * 4 | 0);
+    for (let i = 0; i < n; i++) {
+        balls.push({
+            ox: 0.12 * W + Math.random() * 0.76 * W, oy: 0.12 * H + Math.random() * 0.76 * H,
+            rx: 0.05 * W + Math.random() * 0.12 * W, ry: 0.05 * H + Math.random() * 0.12 * H,
+            sx: 0.0006 + Math.random() * 0.0010, sy: 0.0006 + Math.random() * 0.0010,
+            ax: Math.random() * 6.3, ay: Math.random() * 6.3,
+            r: 0.05 * W + Math.random() * 0.04 * W, x: 0, y: 0
+        });
+    }
+}
+
+function applyLayout() {
+    isMobile = window.innerWidth < 720;
+    document.body.classList.toggle('m', isMobile);
+    const els = document.querySelectorAll('.isle');
+    if (isMobile) {
+        stage.style.width = ''; stage.style.height = '';
+        for (const el of els) { el.style.left = ''; el.style.top = ''; el.style.width = ''; el.style.height = ''; el.style.transform = ''; }
+    } else {
+        STAGEW = DESK.w; STAGEH = DESK.h;
+        stage.style.width = DESK.w + 'px'; stage.style.height = DESK.h + 'px';
+        for (let i = 0; i < els.length; i++) {
+            const a = DESK.p[i];
+            els[i].style.left = a[0] + 'px'; els[i].style.top = a[1] + 'px';
+            els[i].style.width = a[2] + 'px'; els[i].style.height = a[3] + 'px';
+        }
+    }
+}
+
+function setStageScale() {
+    if (isMobile) { kScale = 1; return; }
+    kScale = Math.min(1, (window.innerWidth - 40) / STAGEW, (window.innerHeight - 40) / STAGEH);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + kScale + ')';
+}
+
+function updateIslands() {
+    const sw = W / window.innerWidth, sh = H / window.innerHeight, out = 8;
+    islands = [];
+    document.querySelectorAll('.isle').forEach(el => {
+        el.style.transform = '';
+        const rc = el.getBoundingClientRect();
+        islands.push({
+            el, sw, sh,
+            bcx: rc.left + rc.width / 2, bcy: rc.top + rc.height / 2,
+            hx: (rc.width / 2 + out) * sw, hy: (rc.height / 2 + out) * sh, r: 14 * sw,
+            ampx: 7 + Math.random() * 5, ampy: 6 + Math.random() * 5,
+            spx: 0.0004 + Math.random() * 0.0004, spy: 0.0004 + Math.random() * 0.0004,
+            phx: Math.random() * 6.3, phy: Math.random() * 6.3,
+            gspeed: 0.00018 + Math.random() * 0.00016, gphase: Math.random() * 6.3,
+            curx: 0, cury: 0, slosh: 0, sloshK: 0.5 + Math.random() * 0.5, gcos: 1, gsin: 0, cx: 0, cy: 0, L: 0, R: 0, T: 0, B: 0
+        });
+    });
+}
+
+function driftIslands(t) {
+    if (isMobile) {
+        const sw = W / window.innerWidth, sh = H / window.innerHeight;
+        const sy = window.scrollY || window.pageYOffset || 0;
+        let sd = sy - lastScrollY; lastScrollY = sy;
+        if (sd > 80) sd = 80; else if (sd < -80) sd = -80;
+        for (let n = 0; n < islands.length; n++) {
+            const o = islands[n];
+            const totYprev = o.cury + o.slosh;
+            const rc = o.el.getBoundingClientRect();
+            const baseCx = rc.left + rc.width / 2 - o.curx, baseCy = rc.top + rc.height / 2 - totYprev;
+            const tx = o.ampx * Math.sin(t * o.spx + o.phx), ty = o.ampy * Math.sin(t * o.spy + o.phy);
+            o.curx += (tx - o.curx) * 0.04; o.cury += (ty - o.cury) * 0.04;
+            o.slosh = o.slosh * 0.86 + sd * o.sloshK;
+            if (o.slosh > 34) o.slosh = 34; else if (o.slosh < -34) o.slosh = -34;
+            const totY = o.cury + o.slosh;
+            o.cx = (baseCx + o.curx) * sw; o.cy = (baseCy + totY) * sh;
+            o.hx = (rc.width / 2 + 8) * sw; o.hy = (rc.height / 2 + 8) * sh; o.r = 14 * sw;
+            o.L = o.cx - o.hx; o.R = o.cx + o.hx; o.T = o.cy - o.hy; o.B = o.cy + o.hy;
+            const gp = t * o.gspeed + o.gphase; o.gcos = Math.cos(gp); o.gsin = Math.sin(gp);
+            o.el.style.transform = 'translate(' + o.curx + 'px,' + totY + 'px)';
+        }
+        return;
+    }
+    const R = 200, maxPull = 10;
+    for (let n = 0; n < islands.length; n++) {
+        const o = islands[n];
+        let tx = o.ampx * Math.sin(t * o.spx + o.phx);
+        let ty = o.ampy * Math.sin(t * o.spy + o.phy);
+        if (mouse.inside) {
+            const vx = mouse.mx - (o.bcx + tx), vy = mouse.my - (o.bcy + ty);
+            const d2 = vx * vx + vy * vy;
+            if (d2 < R * R) {
+                const d = Math.sqrt(d2) || 1;
+                const pull = maxPull * (1 - d / R) * Math.min(d / 45, 1);
+                tx += vx / d * pull; ty += vy / d * pull;
+            }
+        }
+        o.curx += (tx - o.curx) * 0.035; o.cury += (ty - o.cury) * 0.035;
+        o.cx = (o.bcx + o.curx) * o.sw; o.cy = (o.bcy + o.cury) * o.sh;
+        o.L = o.cx - o.hx; o.R = o.cx + o.hx; o.T = o.cy - o.hy; o.B = o.cy + o.hy;
+        const gp = t * o.gspeed + o.gphase;
+        o.gcos = Math.cos(gp); o.gsin = Math.sin(gp);
+        o.el.style.transform = 'translate(' + (o.curx / kScale) + 'px,' + (o.cury / kScale) + 'px)';
+    }
+}
+
+function resize() {
+    const cw = window.innerWidth, ch = window.innerHeight;
+    cell = Math.max(4, Math.round(cw / 480));
+    W = Math.max(100, Math.round(cw / cell));
+    H = Math.max(60, Math.round(ch / cell));
+    cv.width = W; cv.height = H;
+    cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+    img = ctx.createImageData(W, H);
+    data = img.data;
+    base = new Uint8ClampedArray(W * H * 4);
+    initBalls();
+    events = [];
+    applyLayout();
+    setStageScale();
+    updateIslands();
+}
+
+function islandField(x, y) {
+    let v = 0;
+    for (let n = 0; n < islands.length; n++) {
+        const o = islands[n];
+        if (x < o.L - 34 || x > o.R + 34 || y < o.T - 34 || y > o.B + 34) continue;
+        const dx = x - o.cx, dy = y - o.cy;
+        const qx = Math.abs(dx) - o.hx + o.r, qy = Math.abs(dy) - o.hy + o.r;
+        const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
+        const sd = Math.sqrt(ox * ox + oy * oy) + Math.min(Math.max(qx, qy), 0) - o.r;
+        let gg = dx / o.hx * o.gcos + dy / o.hy * o.gsin;
+        gg = gg > 1 ? 1 : gg < -1 ? -1 : gg;
+        const reach = SCALE * (1 + (gg > 0 ? 0.20 : 0.35) * gg);
+        v += 0.9 * Math.exp(-sd / reach);
+    }
+    return v > 6 ? 6 : v;
+}
+
+function computeBase(t) {
+    for (let b = 0; b < balls.length; b++) {
+        const o = balls[b];
+        o.x = o.ox + Math.cos(t * o.sx + o.ax) * o.rx;
+        o.y = o.oy + Math.sin(t * o.sy + o.ay) * o.ry;
+    }
+    let p = 0;
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            let f = islandField(x, y);
+            for (let b = 0; b < balls.length; b++) {
+                const dx = x - balls[b].x, dy = y - balls[b].y;
+                f += balls[b].r * balls[b].r / (dx * dx + dy * dy + 1);
+            }
+            let r, g, bl;
+            if (f > 1.0) {
+                const m = Math.min((f - 1) * 0.7, 1);
+                const edge = 1 - Math.min(Math.abs(f - 1.0) * 1.4, 1);
+                const s = 66 + m * 150;
+                r = s; g = s + m * 6; bl = s + m * 22;
+                r += edge * 120 * Math.max(0, Math.sin(t * 0.0014 + y * 0.12));
+                bl += edge * 150 * Math.max(0, Math.cos(t * 0.0011 + x * 0.12));
+                g += edge * 64 * Math.max(0, Math.sin(t * 0.0009 + x * 0.1));
+            } else {
+                const pl = Math.sin(x * 0.035 + t * 0.0010) + Math.sin(y * 0.05 - t * 0.0008)
+                         + Math.sin((x + y) * 0.025 + t * 0.0006);
+                const q = Math.floor(((pl + 3) / 6) * 5) / 5;
+                r = 150 + q * 78; g = 158 + q * 74; bl = 172 + q * 70;
+                if (((x + y + (t * 0.05 | 0)) & 7) === 0) { r += 6; g += 6; bl += 9; }
+            }
+            if (mouse.inside) {
+                const dmx = x - mouse.bx, dmy = y - mouse.by;
+                const glow = 60 * Math.exp(-(dmx * dmx + dmy * dmy) / 260);
+                r += glow; g += glow; bl += glow * 1.1;
+            }
+            base[p++] = r; base[p++] = g; base[p++] = bl; base[p++] = 255;
+        }
+    }
+}
+
+function lum(a, i) { return 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2]; }
+
+function computeSlots(ev) {
+    const { w, h, buf, slot, axis, asc } = ev;
+    if (axis === 'v') {
+        for (let c = 0; c < w; c++) {
+            const rows = [];
+            for (let r = 0; r < h; r++) rows.push(r);
+            rows.sort((A, B) => asc ? lum(buf, (A * w + c) * 4) - lum(buf, (B * w + c) * 4) : lum(buf, (B * w + c) * 4) - lum(buf, (A * w + c) * 4));
+            for (let k = 0; k < h; k++) slot[rows[k] * w + c] = k;
+        }
+    } else {
+        for (let r = 0; r < h; r++) {
+            const cols = [];
+            for (let c = 0; c < w; c++) cols.push(c);
+            cols.sort((A, B) => asc ? lum(buf, (r * w + A) * 4) - lum(buf, (r * w + B) * 4) : lum(buf, (r * w + B) * 4) - lum(buf, (r * w + A) * 4));
+            for (let k = 0; k < w; k++) slot[r * w + cols[k]] = k;
+        }
+    }
+}
+
+function buildEvent(ax0, ay0, ax1, ay1, opts) {
+    opts = opts || {};
+    const x0 = clamp(Math.min(ax0, ax1), 0, W - 1), y0 = clamp(Math.min(ay0, ay1), 0, H - 1);
+    const x1 = clamp(Math.max(ax0, ax1), 0, W - 1), y1 = clamp(Math.max(ay0, ay1), 0, H - 1);
+    const w = x1 - x0 + 1, h = y1 - y0 + 1;
+    if (w < 5 || h < 5) return null;
+    const ev = {
+        x0, y0, w, h,
+        axis: opts.axis || (Math.random() < 0.5 ? 'v' : 'h'),
+        asc: opts.asc != null ? opts.asc : Math.random() < 0.5,
+        buf: new Uint8ClampedArray(w * h * 4), slot: new Int16Array(w * h),
+        phase: opts.impact ? 'impact' : 'sorting',
+        impactUntil: (opts.now || performance.now()) + 130,
+        parity: 0, noSwap: 0, holdUntil: 0, remix: 0
+    };
+    for (let ly = 0; ly < h; ly++)
+        for (let lx = 0; lx < w; lx++) {
+            const s = ((y0 + ly) * W + (x0 + lx)) * 4, d = (ly * w + lx) * 4;
+            ev.buf[d] = base[s]; ev.buf[d + 1] = base[s + 1]; ev.buf[d + 2] = base[s + 2]; ev.buf[d + 3] = 255;
+        }
+    computeSlots(ev);
+    events.push(ev);
+    return ev;
+}
+
+function onePass(ev) {
+    const { w, h, buf, slot, axis, parity } = ev;
+    let swapped = false;
+    if (axis === 'v') {
+        for (let c = 0; c < w; c++)
+            for (let r = parity; r + 1 < h; r += 2) {
+                const i = r * w + c, j = (r + 1) * w + c;
+                if (slot[i] > slot[j]) {
+                    const ts = slot[i]; slot[i] = slot[j]; slot[j] = ts;
+                    const bi = i * 4, bj = j * 4;
+                    for (let k = 0; k < 3; k++) { const t = buf[bi + k]; buf[bi + k] = buf[bj + k]; buf[bj + k] = t; }
+                    swapped = true;
+                }
+            }
+    } else {
+        for (let r = 0; r < h; r++)
+            for (let c = parity; c + 1 < w; c += 2) {
+                const i = r * w + c, j = r * w + c + 1;
+                if (slot[i] > slot[j]) {
+                    const ts = slot[i]; slot[i] = slot[j]; slot[j] = ts;
+                    const bi = i * 4, bj = j * 4;
+                    for (let k = 0; k < 3; k++) { const t = buf[bi + k]; buf[bi + k] = buf[bj + k]; buf[bj + k] = t; }
+                    swapped = true;
+                }
+            }
+    }
+    ev.parity ^= 1;
+    return swapped;
+}
+
+function updateEvents(dt, now) {
+    for (let i = events.length - 1; i >= 0; i--) {
+        const ev = events[i];
+        if (ev.phase === 'impact') {
+            if (now >= ev.impactUntil) ev.phase = 'sorting';
+        } else if (ev.phase === 'sorting') {
+            let anySwap = false;
+            for (let k = 0; k < 2; k++) if (onePass(ev)) anySwap = true;
+            ev.noSwap = anySwap ? 0 : ev.noSwap + 1;
+            if (ev.noSwap >= 2) { ev.phase = 'hold'; ev.holdUntil = now + 950; }
+        } else if (ev.phase === 'hold') {
+            if (now >= ev.holdUntil) { ev.phase = 'remix'; ev.remix = 0; }
+        } else if (ev.phase === 'remix') {
+            const repl = Math.ceil(ev.w * ev.h * 0.11);
+            for (let n = 0; n < repl; n++) {
+                const lx = (Math.random() * ev.w) | 0, ly = (Math.random() * ev.h) | 0;
+                const s = ((ev.y0 + ly) * W + (ev.x0 + lx)) * 4, d = (ly * ev.w + lx) * 4;
+                ev.buf[d] = base[s]; ev.buf[d + 1] = base[s + 1]; ev.buf[d + 2] = base[s + 2];
+            }
+            ev.remix += dt;
+            if (ev.remix >= 0.55) events.splice(i, 1);
+        }
+    }
+}
+
+function drawEvents() {
+    const flick = ((performance.now() / 35) | 0) & 1;
+    for (const ev of events) {
+        const { x0, y0, w, h, buf } = ev;
+        if (ev.phase === 'impact') {
+            for (let ly = 0; ly < h; ly++)
+                for (let lx = 0; lx < w; lx++) {
+                    const d = (ly * w + lx) * 4, g = ((y0 + ly) * W + (x0 + lx)) * 4;
+                    const v = ((lum(buf, d) > 120 ? 1 : 0) ^ flick) ? 236 : 18;
+                    data[g] = v; data[g + 1] = v; data[g + 2] = v;
+                }
+            continue;
+        }
+        for (let ly = 0; ly < h; ly++)
+            for (let lx = 0; lx < w; lx++) {
+                const d = (ly * w + lx) * 4, g = ((y0 + ly) * W + (x0 + lx)) * 4;
+                data[g] = buf[d]; data[g + 1] = buf[d + 1]; data[g + 2] = buf[d + 2];
+            }
+    }
+}
+
+function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    driftIslands(now);
+    computeBase(now);
+    if (now >= nextAmbient && events.length < 3) {
+        const b = balls[(Math.random() * balls.length) | 0];
+        const sx = 14 + (Math.random() * 18 | 0), sy = 14 + (Math.random() * 18 | 0);
+        buildEvent(Math.round(b.x) - sx, Math.round(b.y) - sy, Math.round(b.x) + sx, Math.round(b.y) + sy, { impact: true, now });
+        nextAmbient = now + 6000 + Math.random() * 6000;
+    }
+    data.set(base);
+    updateEvents(dt, now);
+    drawEvents();
+    ctx.putImageData(img, 0, 0);
+    requestAnimationFrame(frame);
+}
+
+function toCellX(px) { return Math.round(px / window.innerWidth * W); }
+function toCellY(px) { return Math.round(px / window.innerHeight * H); }
+
+window.addEventListener('mousemove', e => {
+    mouse.bx = toCellX(e.clientX); mouse.by = toCellY(e.clientY);
+    mouse.mx = e.clientX; mouse.my = e.clientY; mouse.inside = true;
+    if (sel.active) {
+        sel.cx = e.clientX; sel.cy = e.clientY;
+        selBox.style.left = Math.min(sel.sx, sel.cx) + 'px'; selBox.style.top = Math.min(sel.sy, sel.cy) + 'px';
+        selBox.style.width = Math.abs(sel.cx - sel.sx) + 'px'; selBox.style.height = Math.abs(sel.cy - sel.sy) + 'px';
+    }
+});
+document.addEventListener('mouseleave', () => { mouse.inside = false; });
+cv.addEventListener('mousedown', e => {
+    sel.active = true; sel.sx = sel.cx = e.clientX; sel.sy = sel.cy = e.clientY;
+    selBox.style.left = e.clientX + 'px'; selBox.style.top = e.clientY + 'px';
+    selBox.style.width = '0px'; selBox.style.height = '0px'; selBox.style.display = 'block';
+});
+window.addEventListener('mouseup', () => {
+    if (!sel.active) return;
+    sel.active = false; selBox.style.display = 'none';
+    const dx = Math.abs(sel.cx - sel.sx), dy = Math.abs(sel.cy - sel.sy);
+    const axis = dy >= dx ? 'v' : 'h';
+    const asc = axis === 'v' ? sel.cy > sel.sy : sel.cx > sel.sx;
+    buildEvent(toCellX(Math.min(sel.sx, sel.cx)), toCellY(Math.min(sel.sy, sel.cy)),
+               toCellX(Math.max(sel.sx, sel.cx)), toCellY(Math.max(sel.sy, sel.cy)), { axis, asc });
+});
+
+window.addEventListener('resize', resize);
+window.addEventListener('load', () => { applyLayout(); setStageScale(); updateIslands(); });
+setAge();
+resize();
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>
