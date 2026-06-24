@@ -107,7 +107,7 @@ const mouse = { bx: -999, by: -999, mx: -9999, my: -9999, inside: false };
 let events = [];
 let nextAmbient = performance.now() + 3500;
 let last = performance.now();
-let lastScrollY = 0, fieldH = 0, scrollCell = 0;
+let lastScrollY = 0, fieldH = 0, scrollCell = 0, scrollVel = 0;
 const visBalls = [];
 
 const sel = { active: false, sx: 0, sy: 0, cx: 0, cy: 0 };
@@ -187,6 +187,8 @@ function driftIslands(t) {
         if (sy < 0) sy = 0; else if (sy > maxS) sy = maxS;
         let sd = sy - lastScrollY; lastScrollY = sy;
         if (sd > 80) sd = 80; else if (sd < -80) sd = -80;
+        scrollVel = scrollVel * 0.82 + sd * 0.18;
+        if (scrollVel > -0.05 && scrollVel < 0.05) scrollVel = 0;
         scrollCell = sy * sh;
         for (let n = 0; n < islands.length; n++) {
             const o = islands[n];
@@ -195,8 +197,9 @@ function driftIslands(t) {
             const baseCx = rc.left + rc.width / 2 - o.curx, baseCy = rc.top + rc.height / 2 - totYprev;
             const tx = o.ampx * Math.sin(t * o.spx + o.phx), ty = o.ampy * Math.sin(t * o.spy + o.phy);
             o.curx += (tx - o.curx) * 0.04; o.cury += (ty - o.cury) * 0.04;
-            o.slosh = o.slosh * 0.86 + sd * o.sloshK;
-            if (o.slosh > 34) o.slosh = 34; else if (o.slosh < -34) o.slosh = -34;
+            const target = scrollVel * o.sloshK * 1.4;
+            o.slosh += (target - o.slosh) * 0.2;
+            if (o.slosh > 28) o.slosh = 28; else if (o.slosh < -28) o.slosh = -28;
             const totY = o.cury + o.slosh;
             o.cx = (baseCx + o.curx) * sw; o.cy = (baseCy + totY) * sh;
             o.hx = (rc.width / 2 + 8) * sw; o.hy = (rc.height / 2 + 8) * sh; o.r = 14 * sw;
@@ -300,7 +303,7 @@ function computeBase(t) {
                 r = 150 + q * 78; g = 158 + q * 74; bl = 172 + q * 70;
                 if (((x + y + (t * 0.05 | 0)) & 7) === 0) { r += 6; g += 6; bl += 9; }
             }
-            if (mouse.inside) {
+            if (mouse.inside && !isMobile) {
                 const dmx = x - mouse.bx, dmy = y - mouse.by;
                 const glow = 60 * Math.exp(-(dmx * dmx + dmy * dmy) / 260);
                 r += glow; g += glow; bl += glow * 1.1;
