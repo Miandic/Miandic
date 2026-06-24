@@ -107,7 +107,8 @@ const mouse = { bx: -999, by: -999, mx: -9999, my: -9999, inside: false };
 let events = [];
 let nextAmbient = performance.now() + 3500;
 let last = performance.now();
-let lastScrollY = 0;
+let lastScrollY = 0, fieldH = 0, scrollCell = 0;
+const visBalls = [];
 
 const sel = { active: false, sx: 0, sy: 0, cx: 0, cy: 0 };
 
@@ -122,11 +123,12 @@ function setAge() {
 
 function initBalls() {
     balls = [];
-    const n = 5 + (Math.random() * 4 | 0);
+    const screens = Math.max(1, fieldH / H);
+    const n = Math.min(30, Math.round((5 + Math.random() * 3) * screens));
     for (let i = 0; i < n; i++) {
         balls.push({
-            ox: 0.12 * W + Math.random() * 0.76 * W, oy: 0.12 * H + Math.random() * 0.76 * H,
-            rx: 0.05 * W + Math.random() * 0.12 * W, ry: 0.05 * H + Math.random() * 0.12 * H,
+            ox: 0.1 * W + Math.random() * 0.8 * W, oy: 0.03 * fieldH + Math.random() * 0.94 * fieldH,
+            rx: 0.05 * W + Math.random() * 0.12 * W, ry: 0.04 * H + Math.random() * 0.09 * H,
             sx: 0.0006 + Math.random() * 0.0010, sy: 0.0006 + Math.random() * 0.0010,
             ax: Math.random() * 6.3, ay: Math.random() * 6.3,
             r: 0.05 * W + Math.random() * 0.04 * W, x: 0, y: 0
@@ -180,9 +182,12 @@ function updateIslands() {
 function driftIslands(t) {
     if (isMobile) {
         const sw = W / window.innerWidth, sh = H / window.innerHeight;
-        const sy = window.scrollY || window.pageYOffset || 0;
+        const maxS = Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight);
+        let sy = window.scrollY || window.pageYOffset || 0;
+        if (sy < 0) sy = 0; else if (sy > maxS) sy = maxS;
         let sd = sy - lastScrollY; lastScrollY = sy;
         if (sd > 80) sd = 80; else if (sd < -80) sd = -80;
+        scrollCell = sy * sh;
         for (let n = 0; n < islands.length; n++) {
             const o = islands[n];
             const totYprev = o.cury + o.slosh;
@@ -234,11 +239,15 @@ function resize() {
     img = ctx.createImageData(W, H);
     data = img.data;
     base = new Uint8ClampedArray(W * H * 4);
-    initBalls();
     events = [];
     applyLayout();
     setStageScale();
     updateIslands();
+    const shc = H / ch;
+    fieldH = isMobile ? Math.max(ch, document.documentElement.scrollHeight || ch) * shc : H;
+    lastScrollY = isMobile ? (window.scrollY || 0) : 0;
+    scrollCell = lastScrollY * shc;
+    initBalls();
 }
 
 function islandField(x, y) {
@@ -259,18 +268,21 @@ function islandField(x, y) {
 }
 
 function computeBase(t) {
+    visBalls.length = 0;
     for (let b = 0; b < balls.length; b++) {
         const o = balls[b];
         o.x = o.ox + Math.cos(t * o.sx + o.ax) * o.rx;
-        o.y = o.oy + Math.sin(t * o.sy + o.ay) * o.ry;
+        const sy = o.oy + Math.sin(t * o.sy + o.ay) * o.ry - scrollCell;
+        if (sy > -42 && sy < H + 42) visBalls.push({ x: o.x, y: sy, r2: o.r * o.r });
     }
     let p = 0;
     for (let y = 0; y < H; y++) {
         for (let x = 0; x < W; x++) {
             let f = islandField(x, y);
-            for (let b = 0; b < balls.length; b++) {
-                const dx = x - balls[b].x, dy = y - balls[b].y;
-                f += balls[b].r * balls[b].r / (dx * dx + dy * dy + 1);
+            for (let b = 0; b < visBalls.length; b++) {
+                const vb = visBalls[b];
+                const dx = x - vb.x, dy = y - vb.y;
+                f += vb.r2 / (dx * dx + dy * dy + 1);
             }
             let r, g, bl;
             if (f > 1.0) {
@@ -467,7 +479,7 @@ window.addEventListener('mouseup', () => {
 });
 
 window.addEventListener('resize', resize);
-window.addEventListener('load', () => { applyLayout(); setStageScale(); updateIslands(); });
+window.addEventListener('load', resize);
 setAge();
 resize();
 requestAnimationFrame(frame);
