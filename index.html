@@ -10,7 +10,7 @@
     body { overflow: hidden; height: 100vh; }
     body.m { overflow-x: hidden; overflow-y: auto; height: auto; min-height: 100vh; }
     #bg { position: fixed; inset: 0; z-index: 0; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
-    body.m #bg { pointer-events: none; cursor: default; }
+    body.m #bg { pointer-events: none; cursor: default; width: 100% !important; height: 100% !important; }
     #sel {
         position: fixed; display: none; pointer-events: none; z-index: 9;
         background-image:
@@ -49,6 +49,21 @@
     body.m .isle p, body.m .isle li { font-size: 15px; line-height: 1.5; }
     body.m .isle ul { padding-left: 18px; } body.m .isle li { margin: 7px 0; }
     body.m .hint { display: none; }
+
+    .pj-item { pointer-events: auto; cursor: pointer; }
+    .pj-item:hover .pj { border-bottom: 1px solid rgba(14,90,112,.55); }
+    .bubble { position: fixed; z-index: 4; width: 340px; box-sizing: border-box; padding: 20px 22px;
+              font-family: 'Roboto Mono', ui-monospace, monospace; color: #141a23; will-change: transform, opacity; }
+    .bubble h3 { font-size: 20px; margin: 0 0 4px; font-weight: 500; letter-spacing: 1px; color: #161b24; }
+    .bubble .btag { font-size: 12px; color: #5a6675; letter-spacing: 1px; }
+    .bubble p { font-size: 13px; line-height: 1.55; color: #222d39; margin: 12px 0; }
+    .bubble .bphotos { display: flex; gap: 8px; margin-top: 12px; }
+    .bubble .ph { flex: 1; height: 86px; border-radius: 6px; opacity: .9;
+                  background: repeating-linear-gradient(45deg, #b4bcc8, #b4bcc8 6px, #9ca5b2 6px, #9ca5b2 12px); }
+    .bubble .blinks a { color: #0e5a70; text-decoration: none; border-bottom: 1px solid rgba(14,90,112,.4);
+                        font-size: 13px; margin-right: 16px; pointer-events: auto; }
+    .bubble .bclose { position: absolute; top: 8px; right: 12px; border: none; background: none; font-size: 22px;
+                      line-height: 1; cursor: pointer; color: #44505e; pointer-events: auto; }
 </style>
 </head>
 <body>
@@ -68,9 +83,9 @@
         <div class="isle" style="left:296px; top:160px; width:512px; height:264px;">
             <h2>Projects</h2>
             <ul>
-                <li><span class="pj">Biomimetic Hand</span> <span class="tag">3D · C++</span><br>Hand driven by hydraulic muscles. Active WIP.</li>
-                <li><span class="pj">Drone Battery Change</span> <span class="tag">C++</span><br>Autonomous battery-swap system. <a href="https://shustrik.org/blog/880214">ШУСТРИК</a> winner.</li>
-                <li><span class="pj"><a href="https://github.com/Gusarich/multisig-dapp">Multisig dApp</a></span> <span class="tag">JS</span><br>UI for multi-signature TON wallets.</li>
+                <li class="pj-item" data-idx="0"><span class="pj">Biomimetic Hand</span> <span class="tag">3D · C++ ↗</span><br>Hand driven by hydraulic muscles. Active WIP.</li>
+                <li class="pj-item" data-idx="1"><span class="pj">Drone Battery Change</span> <span class="tag">C++ ↗</span><br>Autonomous battery-swap system. ШУСТРИК winner.</li>
+                <li class="pj-item" data-idx="2"><span class="pj">Multisig dApp</span> <span class="tag">JS ↗</span><br>UI for multi-signature TON wallets.</li>
             </ul>
         </div>
         <div class="isle" style="left:54px; top:360px; width:300px; height:204px;">
@@ -111,6 +126,19 @@ let lastScrollY = 0, fieldH = 0, scrollCell = 0, scrollVel = 0;
 const visBalls = [];
 
 const sel = { active: false, sx: 0, sy: 0, cx: 0, cy: 0 };
+
+let bubble = null, bubbleIsland = null, bubbleIdx = -1;
+let recoilX = 0, recoilY = 0, recoilVX = 0, recoilVY = 0;
+const PROJECTS = [
+    { title: 'Biomimetic Hand', tags: '3D · C++ · Active WIP', photos: 2, links: [],
+      body: 'A robotic hand actuated by hydraulic artificial muscles. Initially inspired by the human hand, evolving with whatever the hardware allows. Active work in progress.' },
+    { title: 'Drone Battery Change', tags: 'C++ · Hardware', photos: 2,
+      links: [{ t: 'Competition →', u: 'https://shustrik.org/blog/880214' }],
+      body: 'An autonomous drone battery-swap system. Winner of the ШУСТРИК competition in the Aerospace section; redesigned in 2024 into a more serious prototype.' },
+    { title: 'Multisig dApp', tags: 'JS · Web', photos: 1,
+      links: [{ t: 'GitHub →', u: 'https://github.com/Gusarich/multisig-dapp' }],
+      body: 'A user-friendly web interface for interacting with multi-signature wallets on TON.' }
+];
 
 function setAge() {
     const d = new Date();
@@ -169,6 +197,8 @@ function updateIslands() {
         islands.push({
             el, sw, sh,
             bcx: rc.left + rc.width / 2, bcy: rc.top + rc.height / 2,
+            docx: rc.left + rc.width / 2 + (window.scrollX || 0), docy: rc.top + rc.height / 2 + (window.scrollY || 0),
+            w2: rc.width / 2, h2: rc.height / 2,
             hx: (rc.width / 2 + out) * sw, hy: (rc.height / 2 + out) * sh, r: 14 * sw,
             ampx: 7 + Math.random() * 5, ampy: 6 + Math.random() * 5,
             spx: 0.0004 + Math.random() * 0.0004, spy: 0.0004 + Math.random() * 0.0004,
@@ -192,26 +222,33 @@ function driftIslands(t) {
         scrollCell = sy * sh;
         for (let n = 0; n < islands.length; n++) {
             const o = islands[n];
-            const totYprev = o.cury + o.slosh;
-            const rc = o.el.getBoundingClientRect();
-            const baseCx = rc.left + rc.width / 2 - o.curx, baseCy = rc.top + rc.height / 2 - totYprev;
             const tx = o.ampx * Math.sin(t * o.spx + o.phx), ty = o.ampy * Math.sin(t * o.spy + o.phy);
             o.curx += (tx - o.curx) * 0.04; o.cury += (ty - o.cury) * 0.04;
             const target = scrollVel * o.sloshK * 1.4;
             o.slosh += (target - o.slosh) * 0.2;
             if (o.slosh > 28) o.slosh = 28; else if (o.slosh < -28) o.slosh = -28;
             const totY = o.cury + o.slosh;
-            o.cx = (baseCx + o.curx) * sw; o.cy = (baseCy + totY) * sh;
-            o.hx = (rc.width / 2 + 8) * sw; o.hy = (rc.height / 2 + 8) * sh; o.r = 14 * sw;
+            // Screen position derived from cached document coords + known scroll (no per-frame reflow).
+            o.cx = (o.docx + o.curx) * sw; o.cy = (o.docy - sy + totY) * sh;
+            o.hx = (o.w2 + 8) * sw; o.hy = (o.h2 + 8) * sh; o.r = 14 * sw;
             o.L = o.cx - o.hx; o.R = o.cx + o.hx; o.T = o.cy - o.hy; o.B = o.cy + o.hy;
             const gp = t * o.gspeed + o.gphase; o.gcos = Math.cos(gp); o.gsin = Math.sin(gp);
             o.el.style.transform = 'translate(' + o.curx + 'px,' + totY + 'px)';
         }
         return;
     }
+    recoilVX += -recoilX * 0.07; recoilVX *= 0.84; recoilX += recoilVX;
+    recoilVY += -recoilY * 0.07; recoilVY *= 0.84; recoilY += recoilVY;
+    const sw = W / window.innerWidth, sh = H / window.innerHeight;
+    const bpx = bubbleIsland ? bubbleIsland.cx / sw : 0, bpy = bubbleIsland ? bubbleIsland.cy / sh : 0;
     const R = 200, maxPull = 10;
     for (let n = 0; n < islands.length; n++) {
         const o = islands[n];
+        if (o.track) {
+            measureFromRect(o);
+            const gpt = t * o.gspeed + o.gphase; o.gcos = Math.cos(gpt); o.gsin = Math.sin(gpt);
+            continue;
+        }
         let tx = o.ampx * Math.sin(t * o.spx + o.phx);
         let ty = o.ampy * Math.sin(t * o.spy + o.phy);
         if (mouse.inside) {
@@ -223,16 +260,32 @@ function driftIslands(t) {
                 tx += vx / d * pull; ty += vy / d * pull;
             }
         }
+        if (bubbleIsland) {
+            const rx2 = o.bcx - bpx, ry2 = o.bcy - bpy;
+            const rd = Math.sqrt(rx2 * rx2 + ry2 * ry2) || 1;
+            if (rd < 340) { const push = 115 * (1 - rd / 340); tx += rx2 / rd * push; ty += ry2 / rd * push; }
+        }
         o.curx += (tx - o.curx) * 0.035; o.cury += (ty - o.cury) * 0.035;
-        o.cx = (o.bcx + o.curx) * o.sw; o.cy = (o.bcy + o.cury) * o.sh;
+        const ox = o.curx + recoilX, oy = o.cury + recoilY;
+        o.cx = (o.bcx + ox) * o.sw; o.cy = (o.bcy + oy) * o.sh;
         o.L = o.cx - o.hx; o.R = o.cx + o.hx; o.T = o.cy - o.hy; o.B = o.cy + o.hy;
         const gp = t * o.gspeed + o.gphase;
         o.gcos = Math.cos(gp); o.gsin = Math.sin(gp);
-        o.el.style.transform = 'translate(' + (o.curx / kScale) + 'px,' + (o.cury / kScale) + 'px)';
+        o.el.style.transform = 'translate(' + (ox / kScale) + 'px,' + (oy / kScale) + 'px)';
     }
 }
 
+function measureFromRect(o) {
+    const sw = W / window.innerWidth, sh = H / window.innerHeight;
+    const rc = o.el.getBoundingClientRect();
+    o.cx = (rc.left + rc.width / 2) * sw; o.cy = (rc.top + rc.height / 2) * sh;
+    o.hx = (rc.width / 2 + 8) * sw; o.hy = (rc.height / 2 + 8) * sh; o.r = 14 * sw;
+    o.L = o.cx - o.hx; o.R = o.cx + o.hx; o.T = o.cy - o.hy; o.B = o.cy + o.hy;
+}
+
 function resize() {
+    closeBubble(true);
+    recoilX = recoilY = recoilVX = recoilVY = 0;
     const cw = window.innerWidth, ch = window.innerHeight;
     cell = Math.max(4, Math.round(cw / 480));
     W = Math.max(100, Math.round(cw / cell));
@@ -277,6 +330,15 @@ function computeBase(t) {
         o.x = o.ox + Math.cos(t * o.sx + o.ax) * o.rx;
         const sy = o.oy + Math.sin(t * o.sy + o.ay) * o.ry - scrollCell;
         if (sy > -42 && sy < H + 42) visBalls.push({ x: o.x, y: sy, r2: o.r * o.r });
+    }
+    if (bubbleIsland && islands.length > 2) {
+        const a = islands[2], b = bubbleIsland;
+        const ddx = b.cx - a.cx, ddy = b.cy - a.cy;
+        const n = Math.max(6, Math.round(Math.sqrt(ddx * ddx + ddy * ddy) / 11));
+        for (let i = 1; i <= n; i++) {
+            const f = i / (n + 1);
+            visBalls.push({ x: a.cx + ddx * f, y: a.cy + ddy * f, r2: 56 - 22 * f });
+        }
     }
     let p = 0;
     for (let y = 0; y < H; y++) {
@@ -481,7 +543,83 @@ window.addEventListener('mouseup', () => {
                toCellX(Math.max(sel.sx, sel.cx)), toCellY(Math.max(sel.sy, sel.cy)), { axis, asc });
 });
 
-window.addEventListener('resize', resize);
+function makeTrackedIsland(el) {
+    return { el, track: true, gspeed: 0.0002, gphase: Math.random() * 6.3, gcos: 1, gsin: 0,
+             cx: 0, cy: 0, hx: 0, hy: 0, r: 0, L: 0, R: 0, T: 0, B: 0 };
+}
+
+function openBubble(idx) {
+    if (isMobile) return;
+    if (bubble && bubbleIdx === idx) { closeBubble(false); return; }
+    closeBubble(true);
+    const p = PROJECTS[idx]; if (!p) return;
+    bubbleIdx = idx;
+    const projRect = document.querySelectorAll('.isle')[2].getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'bubble';
+    el.innerHTML =
+        '<button class="bclose" aria-label="close">×</button>' +
+        '<h3>' + p.title + '</h3>' +
+        '<div class="btag">' + p.tags + '</div>' +
+        '<div class="bphotos">' + '<div class="ph"></div>'.repeat(p.photos) + '</div>' +
+        '<p>' + p.body + '</p>' +
+        '<div class="blinks">' + p.links.map(function (l) { return '<a href="' + l.u + '">' + l.t + '</a>'; }).join('') + '</div>';
+    document.body.appendChild(el);
+    bubble = el;
+    const bw = 340, bh = el.offsetHeight || 300;
+    let tx = projRect.right + 120, dir = 1;
+    if (tx + bw > window.innerWidth - 14) { tx = projRect.left - bw - 120; dir = -1; }
+    tx = clamp(tx, 14, window.innerWidth - bw - 14);
+    let ty = clamp(projRect.top + projRect.height / 2 - bh / 2, 14, window.innerHeight - bh - 14);
+    el.style.left = tx + 'px'; el.style.top = ty + 'px'; el.style.transformOrigin = 'center';
+    const startX = (projRect.left + projRect.right) / 2 - (tx + bw / 2);
+    const startY = (projRect.top + projRect.bottom) / 2 - (ty + bh / 2);
+    el.style.transform = 'translate(' + startX + 'px,' + startY + 'px) scale(0.25)';
+    el.style.opacity = '0';
+    el.getBoundingClientRect();
+    el.style.transition = 'transform .5s cubic-bezier(.2,.85,.25,1), opacity .35s';
+    el.style.transform = 'translate(0,0) scale(1)';
+    el.style.opacity = '1';
+    bubbleIsland = makeTrackedIsland(el);
+    islands.push(bubbleIsland);
+    recoilVX = -dir * 8;
+    el.querySelector('.bclose').addEventListener('click', function () { closeBubble(false); });
+}
+
+function closeBubble(instant) {
+    if (!bubble) return;
+    const b = bubble, isl = bubbleIsland;
+    bubble = null; bubbleIdx = -1;
+    if (instant) {
+        bubbleIsland = null;
+        const i = islands.indexOf(isl); if (i >= 0) islands.splice(i, 1);
+        b.remove(); return;
+    }
+    b.style.transition = 'transform .32s ease-in, opacity .32s';
+    b.style.transform = 'scale(0.2)'; b.style.opacity = '0';
+    setTimeout(function () {
+        if (bubbleIsland === isl) bubbleIsland = null;
+        const i = islands.indexOf(isl); if (i >= 0) islands.splice(i, 1);
+        if (b.parentNode) b.remove();
+    }, 340);
+}
+
+document.querySelectorAll('.pj-item').forEach(function (el) {
+    el.addEventListener('click', function () { openBubble(parseInt(el.dataset.idx, 10)); });
+});
+window.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeBubble(false); });
+
+let lastVW = window.innerWidth, lastVH = window.innerHeight;
+function onResize() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    // On mobile the browser toolbar shows/hides while scrolling, which changes
+    // innerHeight and would otherwise re-run the full (random) reinit every frame.
+    // Ignore height-only changes; only real width changes / orientation flips reinit.
+    if (vw < 720 && vw === lastVW && Math.abs(vh - lastVH) < 150) { lastVH = vh; return; }
+    lastVW = vw; lastVH = vh;
+    resize();
+}
+window.addEventListener('resize', onResize);
 window.addEventListener('load', resize);
 setAge();
 resize();
