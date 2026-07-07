@@ -64,6 +64,19 @@
                         font-size: 13px; margin-right: 16px; pointer-events: auto; }
     .bubble .bclose { position: absolute; top: 8px; right: 12px; border: none; background: none; font-size: 22px;
                       line-height: 1; cursor: pointer; color: #44505e; pointer-events: auto; }
+
+    .lang { margin-left: 2px; white-space: nowrap; }
+    .lng { cursor: pointer; pointer-events: auto; color: #5a6675; border-bottom: 1px solid transparent; }
+    .lng.on { color: #0e5a70; border-bottom: 1px solid rgba(14,90,112,.4); }
+    .lng:hover { color: #06303d; }
+    .lsep { color: #97a1af; margin: 0 3px; }
+
+    /* Cyrillic falls back to the system monospace, which renders lighter than
+       Latin — bump the weight on Russian so the text reads as crisp. */
+    html[lang="ru"] .isle p, html[lang="ru"] .isle li,
+    html[lang="ru"] .rl, html[lang="ru"] .ct,
+    html[lang="ru"] .bubble p, html[lang="ru"] .bubble .btag { font-weight: 500; }
+    html[lang="ru"] .isle h2 { font-weight: 600; }
 </style>
 </head>
 <body>
@@ -71,41 +84,42 @@
     <div id="sel"></div>
 
     <div class="stage" id="stage">
-        <div class="isle" style="left:152px; top:6px; width:540px; height:120px;">
-            <h1 class="nm">Michael Andreev</h1>
-            <p class="rl">MIANDIC — software &amp; robotics engineer</p>
-            <p class="ct">Russia · GMT+3 · <a href="https://t.me/miandic_n">Telegram</a> · <a href="https://github.com/Miandic">GitHub</a></p>
+        <div class="isle" style="left:152px; top:6px; width:540px; height:132px;">
+            <h1 class="nm" id="nm">Michael Andreev</h1>
+            <p class="rl" id="role">MIANDIC — software &amp; robotics engineer</p>
+            <p class="ct"><span id="loc">Russia</span> · GMT+3 · <a href="https://t.me/miandic_n">Telegram</a> · <a href="https://github.com/Miandic">GitHub</a> · <span class="lang"><span class="lng" data-l="en">EN</span><span class="lsep">/</span><span class="lng" data-l="ru">RU</span></span></p>
         </div>
-        <div class="isle" style="left:10px; top:172px; width:232px; height:152px;">
-            <h2>About</h2>
-            <p id="about">Developer and engineer. I build robots, drones and software.</p>
+        <div class="isle" style="left:10px; top:172px; width:262px; height:196px;">
+            <h2 id="h-about">About</h2>
+            <p id="about"></p>
         </div>
-        <div class="isle" style="left:296px; top:160px; width:512px; height:264px;">
-            <h2>Projects</h2>
+        <div class="isle" style="left:296px; top:150px; width:512px; height:300px;">
+            <h2 id="h-projects">Projects</h2>
             <ul>
-                <li class="pj-item" data-idx="0"><span class="pj">Biomimetic Hand</span> <span class="tag">3D · C++ ↗</span><br>Hand driven by hydraulic muscles. Active WIP.</li>
-                <li class="pj-item" data-idx="1"><span class="pj">Drone Battery Change</span> <span class="tag">C++ ↗</span><br>Autonomous battery-swap system. ШУСТРИК winner.</li>
-                <li class="pj-item" data-idx="2"><span class="pj">Multisig dApp</span> <span class="tag">JS ↗</span><br>UI for multi-signature TON wallets.</li>
+                <li class="pj-item" data-idx="0"><span class="pj"></span> <span class="tag"></span><br><span class="pd"></span></li>
+                <li class="pj-item" data-idx="1"><span class="pj"></span> <span class="tag"></span><br><span class="pd"></span></li>
+                <li class="pj-item" data-idx="2"><span class="pj"></span> <span class="tag"></span><br><span class="pd"></span></li>
+                <li class="pj-item" data-idx="3"><span class="pj"></span> <span class="tag"></span><br><span class="pd"></span></li>
             </ul>
         </div>
-        <div class="isle" style="left:54px; top:360px; width:300px; height:204px;">
-            <h2>Skills</h2>
+        <div class="isle" style="left:54px; top:372px; width:300px; height:228px;">
+            <h2 id="h-skills">Skills</h2>
             <ul>
-                <li>Programming: C++, Python, JS / TS, Rust</li>
-                <li>Engineering: Autodesk Inventor, ROS, Raspberry Pi, Arduino, CNC, 3D printing, soldering</li>
-                <li>Languages: Russian (native), English (B2)</li>
+                <li id="sk0"></li>
+                <li id="sk1"></li>
+                <li id="sk2"></li>
             </ul>
         </div>
-        <div class="isle" style="left:408px; top:468px; width:372px; height:150px;">
-            <h2>Achievements</h2>
+        <div class="isle" style="left:408px; top:476px; width:372px; height:168px;">
+            <h2 id="h-ach">Achievements</h2>
             <ul>
-                <li>Prize winner — National Technical Olympiad, intelligent robotic systems</li>
-                <li>Winner — regional &amp; all-Russian stages of ШУСТРИК</li>
+                <li id="ac0"></li>
+                <li id="ac1"></li>
             </ul>
         </div>
     </div>
 
-    <div class="hint">hover · drag to select</div>
+    <div class="hint" id="hint">hover · drag to select</div>
 <script>
 const cv = document.getElementById('bg');
 const ctx = cv.getContext('2d');
@@ -113,7 +127,7 @@ const selBox = document.getElementById('sel');
 const stage = document.getElementById('stage');
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const SCALE = 4.6;
-const DESK = { w: 880, h: 652, p: [[152, 6, 540, 120], [10, 172, 232, 152], [296, 160, 512, 264], [54, 360, 300, 204], [408, 468, 372, 150]] };
+const DESK = { w: 880, h: 652, p: [[152, 6, 540, 132], [10, 172, 262, 196], [296, 150, 512, 300], [54, 372, 300, 228], [408, 476, 372, 168]] };
 
 let W, H, cell, img, data, base, kScale = 1, STAGEW = 880, STAGEH = 652, isMobile = false;
 let balls = [];
@@ -129,24 +143,123 @@ const sel = { active: false, sx: 0, sy: 0, cx: 0, cy: 0 };
 
 let bubble = null, bubbleIsland = null, bubbleIdx = -1;
 let recoilX = 0, recoilY = 0, recoilVX = 0, recoilVY = 0;
-const PROJECTS = [
-    { title: 'Biomimetic Hand', tags: '3D · C++ · Active WIP', photos: 2, links: [],
-      body: 'A robotic hand actuated by hydraulic artificial muscles. Initially inspired by the human hand, evolving with whatever the hardware allows. Active work in progress.' },
-    { title: 'Drone Battery Change', tags: 'C++ · Hardware', photos: 2,
-      links: [{ t: 'Competition →', u: 'https://shustrik.org/blog/880214' }],
-      body: 'An autonomous drone battery-swap system. Winner of the ШУСТРИК competition in the Aerospace section; redesigned in 2024 into a more serious prototype.' },
-    { title: 'Multisig dApp', tags: 'JS · Web', photos: 1,
-      links: [{ t: 'GitHub →', u: 'https://github.com/Gusarich/multisig-dapp' }],
-      body: 'A user-friendly web interface for interacting with multi-signature wallets on TON.' }
-];
 
-function setAge() {
+const T = {
+    en: {
+        nm: 'Michael Andreev',
+        role: 'MIANDIC — software & robotics engineer',
+        loc: 'Russia',
+        h_about: 'About', h_projects: 'Projects', h_skills: 'Skills', h_ach: 'Achievements',
+        about: a => 'Hi! My name is Michael, I am ' + a + ' years old, I am a developer and an engineer. I create autonomous robots, bionics, intuitive control systems, and AI.',
+        sk: ['Programming: C++, Python, JS / TS, Rust',
+             'Engineering: Autodesk Inventor, ROS, Raspberry Pi, NVIDIA Jetson, Arduino, CNC, 3D printing, soldering',
+             'Languages: Russian (native), English (B2)'],
+        ach: ['Prize winner — National Technical Olympiad, intelligent robotic systems',
+              'Winner — regional & all-Russian stages of ШУСТРИК'],
+        hint: 'hover · drag to select',
+        short: [
+            ['EMG Wristband', 'AI · Embedded ↗', 'Forearm EMG band decoding hand motion in real time. UMNIK 2026 grant.'],
+            ['Biomimetic Hand', '3D · C++ ↗', 'Hand driven by hydraulic muscles. Active WIP.'],
+            ['Drone Battery Change', 'C++ ↗', 'Autonomous battery-swap system. ШУСТРИК winner.'],
+            ['Multisig dApp', 'JS ↗', 'UI for multi-signature TON wallets.']
+        ],
+        proj: [
+            { title: 'EMG Wristband', tags: 'AI · Embedded · Grant', photos: 2, links: [],
+              body: 'A wearable 6-channel forearm EMG band (ADS1293 ×2, ESP32-S3, BLE 5.0) paired with a causal transformer that continuously decodes ≥15 hand joint angles in real time — not discrete gestures. It sits on the proximal forearm, so it stays compatible with an amputation stump. Dual use: teleoperating collaborative robots and driving bionic prostheses. UMNIK 2026 grant project.' },
+            { title: 'Biomimetic Hand', tags: '3D · C++ · Active WIP', photos: 2, links: [],
+              body: 'A robotic hand actuated by hydraulic artificial muscles. Initially inspired by the human hand, evolving with whatever the hardware allows. Active work in progress.' },
+            { title: 'Drone Battery Change', tags: 'C++ · Hardware', photos: 2,
+              links: [{ t: 'Competition →', u: 'https://shustrik.org/blog/880214' }],
+              body: 'An autonomous drone battery-swap system. Winner of the ШУСТРИК competition in the Aerospace section; redesigned in 2024 into a more serious prototype.' },
+            { title: 'Multisig dApp', tags: 'JS · Web', photos: 1,
+              links: [{ t: 'GitHub →', u: 'https://github.com/Gusarich/multisig-dapp' }],
+              body: 'A user-friendly web interface for interacting with multi-signature wallets on TON.' }
+        ]
+    },
+    ru: {
+        nm: 'Михаил Андреев',
+        role: 'MIANDIC — инженер ПО и робототехники',
+        loc: 'Россия',
+        h_about: 'Обо мне', h_projects: 'Проекты', h_skills: 'Навыки', h_ach: 'Достижения',
+        about: a => 'Привет! Меня зовут Михаил, мне ' + a + ', я разработчик и инженер. Создаю автономных роботов, бионику, интуитивные системы управления и ИИ.',
+        sk: ['Программирование: C++, Python, JS / TS, Rust',
+             'Инженерия: Autodesk Inventor, ROS, Raspberry Pi, NVIDIA Jetson, Arduino, ЧПУ, 3D-печать, пайка',
+             'Языки: русский (родной), английский (B2)'],
+        ach: ['Призёр — Национальная технологическая олимпиада, интеллектуальные робототехнические системы',
+              'Победитель — региональный и всероссийский этапы ШУСТРИК'],
+        hint: 'наведи · выдели мышкой',
+        short: [
+            ['ЭМГ-браслет', 'ИИ · Embedded ↗', 'Браслет ЭМГ на предплечье — распознаёт движения кисти в реальном времени. Грант УМНИК 2026.'],
+            ['Биомиметическая рука', '3D · C++ ↗', 'Кисть на гидравлических мышцах. Активная разработка.'],
+            ['Замена батарей дрона', 'C++ ↗', 'Автономная замена аккумуляторов. Победитель ШУСТРИК.'],
+            ['Multisig dApp', 'JS ↗', 'Интерфейс для мультиподписных кошельков TON.']
+        ],
+        proj: [
+            { title: 'ЭМГ-браслет', tags: 'ИИ · Embedded · Грант', photos: 2, links: [],
+              body: 'Носимый 6-канальный ЭМГ-браслет на предплечье (ADS1293 ×2, ESP32-S3, BLE 5.0) в связке с каузальным трансформером, который непрерывно оценивает ≥15 суставных углов кисти в реальном времени — не дискретные жесты. Размещается на проксимальном предплечье и остаётся совместим с культёй при ампутации. Двойное применение: телеоперация коллаборативными роботами и управление бионическими протезами. Проект гранта УМНИК 2026.' },
+            { title: 'Биомиметическая рука', tags: '3D · C++ · Активная разработка', photos: 2, links: [],
+              body: 'Роботизированная кисть на гидравлических искусственных мышцах. Изначально вдохновлена человеческой рукой, развивается в меру возможностей железа. Активная разработка.' },
+            { title: 'Замена батарей дрона', tags: 'C++ · Железо', photos: 2,
+              links: [{ t: 'Конкурс →', u: 'https://shustrik.org/blog/880214' }],
+              body: 'Автономная система замены аккумуляторов дрона. Победитель конкурса ШУСТРИК в аэрокосмической секции; в 2024 переработана в более серьёзный прототип.' },
+            { title: 'Multisig dApp', tags: 'JS · Веб', photos: 1,
+              links: [{ t: 'GitHub →', u: 'https://github.com/Gusarich/multisig-dapp' }],
+              body: 'Удобный веб-интерфейс для работы с мультиподписными кошельками на TON.' }
+        ]
+    }
+};
+
+let lang = localStorage.getItem('lang');
+if (lang !== 'en' && lang !== 'ru') lang = (navigator.language || '').toLowerCase().indexOf('ru') === 0 ? 'ru' : 'en';
+let PROJECTS = T[lang].proj;
+
+function ageNow() {
     const d = new Date();
     let age = d.getFullYear() - 2005;
     const m = d.getMonth() + 1;
     if (m < 9 || (m === 9 && d.getDate() < 20)) age--;
-    document.getElementById('about').textContent =
-        "Hello! I'm Michael — " + age + " y.o. developer and engineer. I build robots, drones and software.";
+    return age;
+}
+
+function ruAge(n) {
+    const d10 = n % 10, d100 = n % 100;
+    if (d10 === 1 && d100 !== 11) return n + ' год';
+    if (d10 >= 2 && d10 <= 4 && (d100 < 10 || d100 >= 20)) return n + ' года';
+    return n + ' лет';
+}
+
+function applyLang(l, relayout) {
+    lang = l;
+    try { localStorage.setItem('lang', l); } catch (e) {}
+    document.documentElement.lang = l;
+    const t = T[l];
+    document.getElementById('nm').textContent = t.nm;
+    document.getElementById('role').textContent = t.role;
+    document.getElementById('loc').textContent = t.loc;
+    document.getElementById('h-about').textContent = t.h_about;
+    document.getElementById('h-projects').textContent = t.h_projects;
+    document.getElementById('h-skills').textContent = t.h_skills;
+    document.getElementById('h-ach').textContent = t.h_ach;
+    document.getElementById('about').textContent = t.about(l === 'ru' ? ruAge(ageNow()) : ageNow());
+    for (let i = 0; i < 3; i++) document.getElementById('sk' + i).textContent = t.sk[i];
+    for (let i = 0; i < 2; i++) document.getElementById('ac' + i).textContent = t.ach[i];
+    document.getElementById('hint').textContent = t.hint;
+    document.querySelectorAll('.pj-item').forEach(function (el) {
+        const s = t.short[+el.dataset.idx];
+        el.querySelector('.pj').textContent = s[0];
+        el.querySelector('.tag').textContent = s[1];
+        el.querySelector('.pd').textContent = s[2];
+    });
+    PROJECTS = t.proj;
+    document.querySelectorAll('.lng').forEach(function (a) { a.classList.toggle('on', a.dataset.l === l); });
+    closeBubble(true);
+    if (relayout) {
+        applyLayout(); setStageScale(); updateIslands();
+        if (isMobile) {
+            const shc = H / window.innerHeight;
+            fieldH = Math.max(window.innerHeight, document.documentElement.scrollHeight || window.innerHeight) * shc;
+        }
+    }
 }
 
 function initBalls() {
@@ -609,6 +722,10 @@ document.querySelectorAll('.pj-item').forEach(function (el) {
 });
 window.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeBubble(false); });
 
+document.querySelectorAll('.lng').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); if (a.dataset.l !== lang) applyLang(a.dataset.l, true); });
+});
+
 let lastVW = window.innerWidth, lastVH = window.innerHeight;
 function onResize() {
     const vw = window.innerWidth, vh = window.innerHeight;
@@ -621,7 +738,7 @@ function onResize() {
 }
 window.addEventListener('resize', onResize);
 window.addEventListener('load', resize);
-setAge();
+applyLang(lang, false);
 resize();
 requestAnimationFrame(frame);
 </script>
